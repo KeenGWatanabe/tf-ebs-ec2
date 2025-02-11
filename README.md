@@ -9,12 +9,10 @@ Debian:
 ssh-keygen -t rsa -b 4096 -m pem -f roger_kp.pem && chmod 400 roger_kp.pem
 
 
-#How to manage DynamoDB tables in terraform?
-https://spacelift.io/blog/terraform-dynamodb
+An Elastic IP (EIP) in AWS is a static, public IPv4 address that you can allocate to your AWS account and associate with resources such as EC2 instances, NAT gateways, or network interfaces. Unlike a regular public IP address, which is dynamically assigned and can change when you stop/start an instance, an Elastic IP remains associated with your account until you explicitly release it.
 
+Cost: AWS charges for Elastic IPs that are allocated but not associated with a running instance. Make sure to release unused Elastic IPs to avoid unnecessary costs.
 
-DynamoDB Access: DynamoDB is a fully managed NoSQL database service, and it is accessed via HTTPS (port 443) or through AWS SDKs. EC2 instances do not need a specific ingress rule in their security group to access DynamoDB. Instead, they need egress rules to allow outbound traffic to DynamoDB.
+Limits: By default, AWS allows up to 5 Elastic IPs per region per account. You can request a limit increase if needed.
 
-Security Group for DynamoDB: DynamoDB does not use security groups. Instead, access to DynamoDB is controlled via IAM policies and VPC endpoints (if accessing DynamoDB from a VPC). You don't need a separate security group for DynamoDB.
-
-EC2 Security Group: The EC2 security group should allow outbound traffic to DynamoDB (port 443) if the EC2 instance needs to communicate with DynamoDB.
+Reassociation: You can reassociate an Elastic IP with another instance at any time.

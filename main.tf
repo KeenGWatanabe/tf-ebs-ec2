@@ -1,6 +1,3 @@
-data "aws_availability_zones" "available" {
- state = "available"
-}
 #1 vpc
 resource "aws_vpc" "roger_vpc" {
   cidr_block           = var.vpc_cidr_block
@@ -26,16 +23,7 @@ resource "aws_subnet" "roger_public_subnet" {
     Name = "roger_public_subnet_${count.index}"
   }
 }
-#private subnet
-resource "aws_subnet" "roger_private_subnet" {
-  count             = var.subnet_count.private
-  vpc_id            = aws_vpc.roger_vpc.id
-  cidr_block        = var.private_subnet_cidr[count.index]
-  availability_zone = data.aws_availability_zones.available.names[count.index]
-  tags = {
-    Name = "roger_private_subnet_${count.index}"
-  }
-}
+
 #4 public rtb
 resource "aws_route_table" "roger_public_rt" {
   vpc_id = aws_vpc.roger_vpc.id
@@ -52,24 +40,7 @@ resource "aws_route_table_association" "public" {
 }
 
 #private rtb
-resource "aws_route_table" "roger_private_rt" {
-  vpc_id = aws_vpc.roger_vpc.id
-}
 
-resource "aws_route_table_association" "private" {
-  count          = var.subnet_count.private
-  route_table_id = aws_route_table.roger_private_rt.id
-  subnet_id      = aws_subnet.roger_private_subnet[count.index].id
-}
-
-#fetching my_ip code
-data "http" "my_public_ip" {
-  url = "https://ifconfig.me/ip" # or use any other service that returns your public IP
-}
-
-locals {
-  my_ip = "${chomp(data.http.my_public_ip.body)}/32"
-}
 #5 EC2 security grp
 resource "aws_security_group" "roger_web_sg" {
   name        = "roger_web_sg"
@@ -81,7 +52,7 @@ resource "aws_security_group" "roger_web_sg" {
     from_port   = "22"
     to_port     = "22"
     protocol    = "tcp"
-    cidr_blocks = [local.my_ip] ##fetching my_ip code
+    cidr_blocks = [local.my_public_ip] ##fetching my_ip code
   }
   ingress {
     description = "allow all traffic thro HTTP"
@@ -101,31 +72,9 @@ resource "aws_security_group" "roger_web_sg" {
     Name = "roger_web_sg"
   }
 }
-#EC2-RDS security grp
-resource "aws_security_group" "roger_db_sg" {
-  name        = "roger_db_sg"
-  description = "security group for EC2 instance accessing DynamoDb"
-  vpc_id      = aws_vpc.roger_vpc.id
-  ingress {
-    description     = "allow traffic to DynamoDB"
-    from_port       = "443"
-    to_port         = "443"
-    protocol        = "tcp"
-    security_groups = [aws_security_group.roger_web_sg.id]
-  }
-  tags = {
-    Name = "roger_db_sg"
-  }
-}
-#6 create DB subnet grp
-resource "aws_db_subnet_group" "roger_db_subnet_group" {
-  name        = "roger_db_subnet_group"
-  description = "db subnet group for roger"
-  subnet_ids  = [for subnet in aws_subnet.roger_private_subnet : subnet.id]
-}
-#7 refer to table.tf for DynamoDB
 
-#8 create key-pair, stored in config folder here
+
+#6 create key-pair, stored in config folder here
 resource "aws_key_pair" "roger_kp" {
   key_name   = "roger_kp"
   public_key = file("roger_kp.pem.pub") #public key of ssh
@@ -159,25 +108,27 @@ resource "aws_instance" "roger_web" {
     Name = "roger_web_${count.index}"
   }
 }
-#create elastic IP for EC2
-resource "aws_eip" "roger_web_eip" {
-  count    = var.settings.web_app.count
-  instance = aws_instance.roger_web[count.index].id
-
+# Create a 1 GB EBS volume in the same AZ as the EC2 instance's subnet
+resource "aws_ebs_volume" "roger" {
+  availability_zone = aws_instance.roger_web[count.index].availability_zone
+  size              = 1  #1GB
   tags = {
-    Name = "roger_web_eip_${count.index}"
+    Name = "roger_volume_${count.index}"
   }
 }
-#VPC Endpoint for DynamoDB (Optional):
-#If your EC2 instances are in a VPC and you want to access DynamoDB privately, create a VPC endpoint for DynamoDB:
-resource "aws_vpc_endpoint" "dynamodb_endpoint" {
-  vpc_id            = aws_vpc.roger_vpc.id
-  service_name      = "com.amazonaws.${var.aws_region}.dynamodb"
-  vpc_endpoint_type = "Gateway"
-
-  route_table_ids = [aws_route_table.roger_private_rt.id, aws_route_table.roger_public_rt.id] # Replace with your route table ID
+# Attach the EBS volume to the EC2 instance
+resource "aws_volume_attachment" "roger" {
+  count       = var.settings.web_app.count #Match the number of instances
+  instance_id = aws_instance.roger_web[count.index].id
+  volume_id   = aws_ebs_volume.roger[count.index].id #Reference to the EBS volume
+  device_name = "/dev/sdf"  # Device name to attach the volume
+}
+#create elastic IP for EC2
+resource "aws_eip" "roger_web_eip" {
+  count    = var.settings.web_app.count #Creates multiple EIPs based on the count
+  instance = aws_instance.roger_web[count.index].id #Associates the EIP with the EC2 instance
 
   tags = {
-    Name = "dynamodb-endpoint"
+    Name = "roger_web_eip_${count.index}" #Tags the EIP with a unique name 
   }
 }
