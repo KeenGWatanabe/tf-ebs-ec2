@@ -31,14 +31,6 @@ variable "settings" {
     }
   }
 }
-# variable "private_subnet_cidr" {
-#   description = "Available CIDR-private subnets"
-#   type = list(string)
-# }
 
-#terraform.tfvars
-# variable "my_ip" {
-#   description = "Your IP address"
-#   type = string
-#   sensitive = true
-# }
+
+

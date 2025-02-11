@@ -16,3 +16,4 @@ Cost: AWS charges for Elastic IPs that are allocated but not associated with a r
 Limits: By default, AWS allows up to 5 Elastic IPs per region per account. You can request a limit increase if needed.
 
 Reassociation: You can reassociate an Elastic IP with another instance at any time.
+

@@ -18,7 +18,7 @@ resource "aws_subnet" "roger_public_subnet" {
   count             = var.subnet_count.public
   vpc_id            = aws_vpc.roger_vpc.id
   cidr_block        = var.public_subnet_cidr[count.index]
-  availability_zone = data.aws_availability_zones.available.names[count.index]
+  availability_zone = data.aws_availability_zones.available.names[0]
   tags = {
     Name = "roger_public_subnet_${count.index}"
   }
@@ -79,23 +79,23 @@ resource "aws_key_pair" "roger_kp" {
   key_name   = "roger_kp"
   public_key = file("roger_kp.pem.pub") #public key of ssh
 }
-#create Linux ami
-data "aws_ami" "amazon_linux" {
-  most_recent = "true"
-  owners      = ["amazon"]
-  filter {
-    name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
-  }
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-  filter {
-    name   = "architecture"
-    values = ["x86_64"]
-  }
-}
+# #create Linux ami
+# data "aws_ami" "amazon_linux" {
+#   most_recent = "true"
+#   owners      = ["amazon"]
+#   filter {
+#     name   = "name"
+#     values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+#   }
+#   filter {
+#     name   = "virtualization-type"
+#     values = ["hvm"]
+#   }
+#   filter {
+#     name   = "architecture"
+#     values = ["x86_64"]
+#   }
+# }
 #create EC2 roger_web
 resource "aws_instance" "roger_web" {
   count                  = var.settings.web_app.count
@@ -110,6 +110,7 @@ resource "aws_instance" "roger_web" {
 }
 # Create a 1 GB EBS volume in the same AZ as the EC2 instance's subnet
 resource "aws_ebs_volume" "roger" {
+  count = var.settings.web_app.count #Match the number of instances
   availability_zone = aws_instance.roger_web[count.index].availability_zone
   size              = 1  #1GB
   tags = {
