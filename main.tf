@@ -96,7 +96,7 @@ resource "aws_key_pair" "roger_kp" {
 #     values = ["x86_64"]
 #   }
 # }
-#create EC2 roger_web
+#7 create EC2 roger_web
 resource "aws_instance" "roger_web" {
   count                  = var.settings.web_app.count
   ami                    = data.aws_ami.amazon_linux.id
@@ -108,7 +108,7 @@ resource "aws_instance" "roger_web" {
     Name = "roger_web_${count.index}"
   }
 }
-# Create a 1 GB EBS volume in the same AZ as the EC2 instance's subnet
+#8 Create a 1 GB EBS volume in the same AZ as the EC2 instance's subnet
 resource "aws_ebs_volume" "roger" {
   count = var.settings.web_app.count #Match the number of instances
   availability_zone = aws_instance.roger_web[count.index].availability_zone
@@ -117,14 +117,14 @@ resource "aws_ebs_volume" "roger" {
     Name = "roger_volume_${count.index}"
   }
 }
-# Attach the EBS volume to the EC2 instance
+#9 Attach the EBS volume to the EC2 instance
 resource "aws_volume_attachment" "roger" {
   count       = var.settings.web_app.count #Match the number of instances
   instance_id = aws_instance.roger_web[count.index].id
   volume_id   = aws_ebs_volume.roger[count.index].id #Reference to the EBS volume
   device_name = "/dev/sdf"  # Device name to attach the volume
 }
-#create elastic IP for EC2
+#10 create elastic IP for EC2
 resource "aws_eip" "roger_web_eip" {
   count    = var.settings.web_app.count #Creates multiple EIPs based on the count
   instance = aws_instance.roger_web[count.index].id #Associates the EIP with the EC2 instance

@@ -1,3 +1,8 @@
+Assignment: Using terraform attach a 1 GB EBS volume onto a EC2 instance.
+The EBS volume must be in the same AZ as your EC2’s subnet
+You don’t have to format / mount the EBS volume
+Submission is the url to your public git repository with the working code.
+
 #Creating the Key Pair
 We will be creating a new key pair in our terraform directory. Run the following command:
 
