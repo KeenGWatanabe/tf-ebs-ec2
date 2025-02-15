@@ -77,25 +77,9 @@ resource "aws_security_group" "roger_web_sg" {
 #6 create key-pair, stored in config folder here
 resource "aws_key_pair" "roger_kp" {
   key_name   = "roger_kp"
-  public_key = file("roger_kp.pem.pub") #public key of ssh
+  public_key = file("roger_kp.pub") #public key of ssh #dynamic call
 }
-# #create Linux ami
-# data "aws_ami" "amazon_linux" {
-#   most_recent = "true"
-#   owners      = ["amazon"]
-#   filter {
-#     name   = "name"
-#     values = ["amzn2-ami-hvm-*-x86_64-gp2"]
-#   }
-#   filter {
-#     name   = "virtualization-type"
-#     values = ["hvm"]
-#   }
-#   filter {
-#     name   = "architecture"
-#     values = ["x86_64"]
-#   }
-# }
+
 #7 create EC2 roger_web
 resource "aws_instance" "roger_web" {
   count                  = var.settings.web_app.count
