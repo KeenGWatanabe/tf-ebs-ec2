@@ -74,10 +74,18 @@ resource "aws_security_group" "roger_web_sg" {
 }
 
 
-#6 create key-pair, stored in config folder here
+#6 create key-pair, stored in config folder here:using var.tf 
+# resource "aws_key_pair" "roger_kp" {
+#   key_name   = "roger_kp"
+#   public_key =  file(var.public_key_path) 
+# }
+#6 create key-pair, stored in config folder here:using locals{}
+locals {
+  public_key_files = tolist(fileset(path.module, "*.pub")) #convert fileset() to list
+}
 resource "aws_key_pair" "roger_kp" {
   key_name   = "roger_kp"
-  public_key = file("roger_kp.pub") #public key of ssh #dynamic call
+  public_key = file(element(local.public_key_files, 0)) #element() access items by index
 }
 
 #7 create EC2 roger_web
