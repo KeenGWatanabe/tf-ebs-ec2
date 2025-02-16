@@ -79,14 +79,14 @@ resource "aws_security_group" "roger_web_sg" {
 #   key_name   = "roger_kp"
 #   public_key =  file(var.public_key_path) 
 # }
-#6 create key-pair, stored in config folder here:using locals{}
-locals {
-  public_key_files = tolist(fileset(path.module, "*.pub")) #convert fileset() to list
-}
-resource "aws_key_pair" "roger_kp" {
-  key_name   = "roger_kp"
-  public_key = file(element(local.public_key_files, 0)) #element() access items by index
-}
+#6 create key-pair, stored in config folder here:using locals{} #refactor to key-pair outside of tf
+# locals {
+#   public_key_files = tolist(fileset(path.module, "*.pub")) #convert fileset() to list
+# }
+# resource "aws_key_pair" "roger_kp" {
+#   key_name   = "roger_kp"
+#   public_key = file(element(local.public_key_files, 0)) #element() access items by index
+# }
 
 #7 create EC2 roger_web
 resource "aws_instance" "roger_web" {
@@ -94,7 +94,8 @@ resource "aws_instance" "roger_web" {
   ami                    = data.aws_ami.amazon_linux.id
   instance_type          = var.settings.web_app.instance_type
   subnet_id              = aws_subnet.roger_public_subnet[count.index].id
-  key_name               = aws_key_pair.roger_kp.key_name
+  # key_name               = aws_key_pair.roger_kp.key_name
+  key_name = "roger_kp"
   vpc_security_group_ids = [aws_security_group.roger_web_sg.id]
   tags = {
     Name = "roger_web_${count.index}"
