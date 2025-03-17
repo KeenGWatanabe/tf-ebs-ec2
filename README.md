@@ -11,7 +11,7 @@ Windows, use Git Bash or WSL only unless install openssl:
 `ssh-keygen -t rsa -b 4096 -m pem -f roger_kp.pem; chmod 400 roger_kp.pem`
 
 # Debian:
-`ssh-keygen -t rsa -b 4096 -m pem -f roger_kp.pem && chmod 400 roger_kp.pem`
+ssh-keygen -t rsa -b 4096 -m pem -f roger_kp.pem && chmod 400 roger_kp.pem
 
 After keypair created, 
 goto aws key_pair console to import the roger_kp.pub,
