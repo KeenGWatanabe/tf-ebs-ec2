@@ -94,8 +94,8 @@ resource "aws_instance" "roger_web" {
   ami                    = data.aws_ami.amazon_linux.id
   instance_type          = var.settings.web_app.instance_type
   subnet_id              = aws_subnet.roger_public_subnet[count.index].id
-  # key_name               = aws_key_pair.roger_kp.key_name
-  key_name                = "roger_win_kp" # roger_linux_kp / roger_win_kp
+  #key_name               = aws_key_pair.rger_kp.key_name
+  key_name                = "rger_kp" 
   vpc_security_group_ids = [aws_security_group.roger_web_sg.id]
   tags = {
     Name = "roger_web_${count.index}"
